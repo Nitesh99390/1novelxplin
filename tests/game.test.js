@@ -22,12 +22,12 @@ test('health endpoint', async () => {
 
 test('serves index with English UI strings', async () => {
   const html = await (await fetch(base)).text();
-  for (const s of ['Hit the BOSS!', 'Stars<br>clicked:', 'Withdraw', 'Hit the boss!', 'This is your first boss', 'You killed the boss!', 'BOSS DEFEATED', 'Telegram Stars', 'Claim']) assert.ok(html.includes(s), `missing: ${s}`);
+  for (const s of ['Hit the BOSS!', 'Points<br>tapped:', 'My stars', 'Hit the boss!', 'This is your first boss', 'You killed the boss!', 'BOSS DEFEATED', 'Telegram Stars', 'Watch ad', 'Skip and start over', 'ad-overlay']) assert.ok(html.includes(s), `missing: ${s}`);
   assert.ok(!/[а-яА-Я]/.test(html), 'no Cyrillic left in the UI');
 });
 
 test('serves static assets and vendor confetti', async () => {
-  for (const p of ['/style.css', '/app.js', '/vendor/confetti.js', '/assets/star.png', '/assets/boss.webp', '/assets/pedestal.webp', '/assets/card-bg.jpg']) {
+  for (const p of ['/style.css', '/app.js', '/rewards.js', '/ads.js', '/vendor/confetti.js', '/assets/star.png', '/assets/boss.webp', '/assets/pedestal.webp', '/assets/card-bg.jpg']) {
     const r = await fetch(base + p);
     assert.equal(r.status, 200, p);
   }
@@ -37,4 +37,15 @@ test('SPA fallback returns index for unknown routes', async () => {
   const r = await fetch(`${base}/some/deep/route`);
   assert.equal(r.status, 200);
   assert.ok((await r.text()).includes('screen-game'));
+});
+
+test('config.js exposes ad settings (demo by default)', async () => {
+  const r = await fetch(`${base}/config.js`);
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /javascript/);
+  const txt = await r.text();
+  assert.match(txt, /^window\.APP_CONFIG = /);
+  const cfg = JSON.parse(txt.replace('window.APP_CONFIG = ', '').replace(/;$/, ''));
+  assert.equal(typeof cfg.adsgramBlockId, 'string');
+  assert.equal(cfg.demoAdSeconds > 0, true);
 });
