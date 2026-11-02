@@ -1,17 +1,21 @@
 {
-  "name": "hit-the-boss",
-  "version": "1.0.0",
+  "name": "star-pass-bot",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Hit the BOSS! — Telegram Mini App frontend (clicker boss game)",
+  "description": "Sell access to paid Telegram groups & channels for Telegram Stars — bot + Mini App",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "node --test tests/*.test.js"
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test tests/*.test.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=22.5"
+  },
   "dependencies": {
+    "@grammyjs/auto-retry": "^2.0.2",
     "canvas-confetti": "^1.9.3",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "grammy": "^1.46.0"
   }
 }
