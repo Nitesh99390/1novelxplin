@@ -21,6 +21,18 @@ app.get('/vendor/confetti.js', (_, res) =>
   res.sendFile(resolve('node_modules/canvas-confetti/dist/confetti.browser.js'))
 );
 
+// Public runtime config for the frontend (no secrets here).
+// ADSGRAM_BLOCK_ID — rewarded ad block from https://partner.adsgram.ai
+// (leave empty to use the built-in demo ad).
+app.get('/config.js', (_, res) => {
+  const config = {
+    adsgramBlockId: process.env.ADSGRAM_BLOCK_ID || '',
+    demoAdSeconds: Number(process.env.DEMO_AD_SECONDS || 5),
+  };
+  res.type('application/javascript').set('Cache-Control', 'no-store');
+  res.send(`window.APP_CONFIG = ${JSON.stringify(config)};`);
+});
+
 app.use(express.static('public', { extensions: ['html'], maxAge: '1h' }));
 app.get('*path', (_, res) => res.sendFile(resolve('public/index.html')));
 
