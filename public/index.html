@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Бей босса, выполняй задания и получай подарки!">
+  <title>Бей БОССА!</title>
+  <link rel="icon" href="/assets/star.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="/vendor/confetti.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <!-- Фоновое свечение и летающие звёздочки -->
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg-stars" id="bg-stars" aria-hidden="true"></div>
+
+  <!-- ===================== ЭКРАН ИГРЫ ===================== -->
+  <main id="screen-game" class="screen active">
+    <header class="hud">
+      <div class="counter-card">
+        <span class="counter-label">Сколько<br>накликано:</span>
+        <span class="counter-value"><img src="/assets/star.png" alt="" class="star-ico"><b id="score">0</b></span>
+      </div>
+      <button class="outline-btn" id="withdraw-btn" type="button">Вывести</button>
+    </header>
+
+    <section class="arena">
+      <div class="arena-glow"></div>
+      <div class="embers" id="embers" aria-hidden="true"></div>
+
+      <button class="boss" id="boss" type="button" aria-label="Ударить босса">
+        <img id="boss-img" src="/assets/star.png" alt="Босс — золотая звезда" draggable="false">
+        <svg class="plane" viewBox="0 0 24 24" aria-hidden="true">
+          <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a1a"/><stop offset="1" stop-color="#e8420a"/></linearGradient></defs>
+          <path fill="url(#pg)" d="M21.6 3.2 2.9 10.4c-1.1.4-1.1 1.2-.2 1.5l4.6 1.4 1.8 5.6c.2.6.4.8.8.8.5 0 .7-.2 1-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.4-1.5ZM8.3 12.6l9.9-6.3c.5-.3.9-.1.6.2l-8.3 7.5-.3 3.4-1.9-4.8Z"/>
+        </svg>
+      </button>
+
+      <div class="pedestal" aria-hidden="true">
+        <div class="ped-ring"></div>
+        <div class="ped-top"></div>
+        <div class="ped-body">
+          <span class="ped-light"></span><span class="ped-light"></span><span class="ped-light"></span>
+          <span class="ped-light"></span><span class="ped-light"></span>
+        </div>
+        <div class="ped-base"></div>
+        <div class="ped-shadow"></div>
+      </div>
+
+      <div id="floaters" class="floaters" aria-hidden="true"></div>
+      <div id="particles" class="particles" aria-hidden="true"></div>
+    </section>
+
+    <section class="bottom">
+      <div class="hp-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="hp-bar">
+        <div class="hp-fill" id="hp-fill"></div>
+      </div>
+      <h1 class="boss-title" id="boss-title">Это твой первый босс</h1>
+      <p class="boss-sub" id="boss-sub">Ударь его!</p>
+      <button class="gold-btn hit-btn" id="hit-btn" type="button">Бей босса!</button>
+    </section>
+  </main>
+
+  <!-- ===================== ЭКРАН ПОБЕДЫ ===================== -->
+  <main id="screen-win" class="screen">
+    <div class="win-wrap">
+      <div class="prize-card" id="prize-card">
+        <div class="prize-bokeh"></div>
+        <img class="deco d1" src="/assets/maple.png" alt="">
+        <img class="deco d2" src="/assets/leaf.png" alt="">
+        <img class="deco d3" src="/assets/maple.png" alt="">
+        <img class="deco d4" src="/assets/leaf.png" alt="">
+        <img class="deco d5" src="/assets/maple.png" alt="">
+        <img class="deco d6" src="/assets/leaf.png" alt="">
+        <img class="deco d7" src="/assets/chestnut.png" alt="">
+        <img class="deco d8" src="/assets/chestnut.png" alt="">
+        <img class="deco d9" src="/assets/maple.png" alt="">
+        <img class="deco p1" src="/assets/pumpkin.png" alt="">
+        <img class="deco p2" src="/assets/pumpkin.png" alt="">
+        <img class="deco p3" src="/assets/pumpkin.png" alt="">
+        <div class="prize-center">
+          <div class="prize-amount"><img src="/assets/star.png" alt="" class="prize-star"><span id="prize-amount">5,000</span></div>
+          <div class="prize-caption">Telegram Stars</div>
+        </div>
+      </div>
+
+      <div class="badge"><img src="/assets/sparkles.png" alt="">БОСС ПОВЕРЖЕН</div>
+      <h1 class="win-title">Ты убил босса!</h1>
+      <p class="win-line">Тебе выпало <span class="pill"><b id="win-amount">5 000</b><img src="/assets/star.png" alt="" class="star-ico"></span></p>
+      <p class="win-hint">Забрать звёзды можно у меня по ссылке</p>
+    </div>
+    <div class="win-footer">
+      <button class="gold-btn claim-btn" id="claim-btn" type="button">
+        <img src="/assets/star.png" alt="" class="btn-star">Забрать <span id="claim-amount">5 000</span> звёзд
+        <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
+      </button>
+      <button class="ghost-btn" id="again-btn" type="button">Следующий босс</button>
+    </div>
+  </main>
+
+  <!-- Вспышка при добивании -->
+  <div class="flash" id="flash" aria-hidden="true"></div>
+
+  <!-- Нижний лист (Вывести / Забрать) -->
+  <div class="sheet-backdrop" id="sheet-backdrop">
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-grip"></div>
+      <img class="sheet-ico" id="sheet-ico" src="/assets/star.png" alt="">
+      <h2 id="sheet-title">Вывод звёзд</h2>
+      <p id="sheet-text">Набери хотя бы 5 000 звёзд, победив босса, и забери награду по ссылке.</p>
+      <button class="gold-btn" id="sheet-ok" type="button">Понятно</button>
+    </section>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

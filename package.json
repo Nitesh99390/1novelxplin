@@ -1,0 +1,17 @@
+{
+  "name": "bey-bossa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Бей БОССА! — Telegram Mini App frontend (clicker boss game)",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3",
+    "express": "^5.1.0"
+  }
+}
