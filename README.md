@@ -1,77 +1,137 @@
-# Hit the BOSS! — Telegram Mini App (frontend)
+# Star Pass — paid Telegram groups & channels for ⭐ Telegram Stars
 
-A "Hit the Boss" clicker game for Telegram Mini Apps, in English. This is
-**frontend only** for now (state is stored in `localStorage`); the backend
-(bot, payouts, claim links) will be added later.
+A Telegram bot + Mini App that lets **any owner sell access to their group or
+channel for Telegram Stars**. The bot handles payments, gives each buyer a
+**personal one-time invite link**, starts the **countdown when the buyer joins**
+and **removes the member automatically** when their time is over.
 
-## Run
+## How it works
+
+### Owner
+1. Add the bot to your group / channel as **admin** with the rights
+   **Invite users via link** and **Ban users** (channels: *Add subscribers*).
+2. The bot sends you a **private message**: *"Connected! How many ⭐ Stars should
+   a membership cost?"* with price buttons (25 · 50 · 100 · 250 · 500 · 1000 or
+   custom).
+3. Next it asks **how many days** access lasts (1 · 7 · 15 · 30 · 90 · 365 or
+   custom). The plan is saved and you get a share link.
+4. Everything else is in the **Mini App → Manage** tab:
+   - earnings (all time / 30 days), active members, paid-but-not-joined
+   - add / edit / hide / delete plans (up to 10 per chat)
+   - pause sales, hide from Explore, edit the description
+   - member list with time left, **gift extra days**, **remove now**
+   - recent sales, share link, re-check bot rights
+
+If the owner never started the bot, the bot posts a "Set up membership" button
+in the group and delivers the setup DM as soon as the owner presses **Start**.
+If the bot loses its rights or is removed, the owner is notified and sales pause
+automatically.
+
+### Member
+1. Opens the Mini App (or the owner's link), sees the plans with price and
+   number of days, picks one and pays with **Telegram Stars** (native invoice).
+2. The bot DMs a **one-time invite link** (valid `LINK_TTL_HOURS`, default 24h).
+   It is a *join-request* link: the bot approves only the buyer and declines
+   anyone else who tries to use it. The link is revoked after joining.
+3. **The countdown starts at the moment the member joins** — not at payment.
+4. **My memberships** shows a live countdown (days / hours / min / sec). If the
+   link expired, the member can get a new one from the Mini App.
+5. A reminder is sent before the end (`REMIND_HOURS`, default 24h).
+6. When time is up the bot removes the member (ban + immediate unban, so they
+   can buy again later) and tells them they can renew.
+7. Buying again while active **extends** the end date. If the buyer is already
+   inside the chat, the countdown starts right after payment.
+8. If an invite link can't be created (bot lost rights), the Stars are
+   **refunded automatically**.
+
+## Setup
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) and copy the token.
+2. *(Optional, recommended)* `/newapp` in BotFather → set the URL to your server
+   and remember the short name → `MINIAPP_SHORT_NAME`. Enables direct links
+   `t.me/<bot>/<short_name>?startapp=c_<slug>`.
+3. Deploy (see below) and set the env vars. On start the bot automatically sets
+   its webhook, commands, menu button (opens the Mini App), descriptions and
+   default admin rights.
 
 ```bash
 npm install
-npm start          # http://localhost:3000
+cp .env.example .env    # fill BOT_TOKEN, PUBLIC_URL
+npm start               # http://localhost:3000
 npm test
 ```
 
-## Deploy on Render
+Without `PUBLIC_URL` the bot uses **long polling** (good for local testing), but
+Mini App buttons need an **https** URL.
 
-The repo contains `render.yaml` — connect the repo in Render (Blueprint) or
-create a Web Service: `npm ci` / `npm start`, health check `/api/health`.
-Then set the service URL in BotFather → Bot Settings → Menu Button / Web App.
+### Environment variables
 
-## Game flow — tap → watch ads → collect stars
+| Var | Default | Meaning |
+|-----|---------|---------|
+| `BOT_TOKEN` | — | Token from BotFather (**required**) |
+| `PUBLIC_URL` | `RENDER_EXTERNAL_URL` | Public https URL → webhook + Mini App |
+| `WEBHOOK_SECRET` | — | Secret token checked on every webhook call |
+| `DB_PATH` | `data/bot.db` | SQLite file (**must be on a persistent disk**) |
+| `ADMIN_IDS` | — | Telegram IDs that can manage every chat |
+| `MINIAPP_SHORT_NAME` | — | BotFather `/newapp` short name |
+| `LINK_TTL_HOURS` | `24` | One-time link lifetime |
+| `REMIND_HOURS` | `24` | Reminder before expiry |
+| `SCHEDULER_SECONDS` | `30` | How often expiries are checked |
+| `MAX_STARS` / `MAX_DAYS` | `10000` / `3650` | Plan limits |
+| `DEV_AUTH` | `0` | **Local testing only** — `?dev=<id>` acts as that user |
 
-| Boss | Tap until | Then watch | Reward |
-|------|-----------|------------|--------|
-| 1 | 1,000 points | 1 ad  | +1,000 ★ |
-| 2 | 3,000 points | 2 ads | +3,000 ★ |
-| 3 | 5,000 points | 3 ads | +5,000 ★ |
+### Deploy on Render
 
-1. **Game screen** — "Points tapped" counter, **My stars** balance, goal strip
-   (1,000 → 3,000 → 5,000), 3D golden star boss with a health bar and dynamic
-   titles (*This is your first boss → He's getting weaker! → The boss is
-   resisting → Final push!*), big gold **Hit the boss!** button.
-2. Each tap: boss shake, sparks, floating `+95 … +135` points (crit ×2),
-   haptic feedback, health bar drains. Points stop **exactly** at the milestone.
-3. **Reward screen** — "Watch N ads and get X ★", one box per ad (✓ when
-   watched). An ad only counts if it was watched to the end.
-4. All ads watched → stars fly into **My stars**, the next boss starts.
-   After boss 3 the round starts again from 0.
-5. **Skip and start over** → points go back to 0 and the ladder restarts at
-   boss 1. Stars already earned are kept.
-6. Progress (including half-watched offers) survives app reloads.
+`render.yaml` is a Blueprint with a **1 GB persistent disk** for the SQLite
+database (`/var/data/bot.db`). Disks need a paid plan (*starter*). On the free
+plan the database is wiped on each deploy, so members would never be removed —
+don't use it in production. `PUBLIC_URL` is taken from `RENDER_EXTERNAL_URL`
+automatically.
 
-## Ads
+## Architecture
 
-`public/ads.js` uses **[Adsgram](https://adsgram.ai)** rewarded ads (made for
-Telegram Mini Apps) when `ADSGRAM_BLOCK_ID` is set, otherwise a built-in
-**demo ad** (5-second countdown) so the flow can be tested right away.
+| File | What |
+|------|------|
+| `server.js` | Express: Mini App, REST API, webhook, photo proxy, scheduler |
+| `src/bot.js` | grammY handlers (`my_chat_member`, `chat_member`, `chat_join_request`, payments, setup buttons) |
+| `src/service.js` | All business logic (setup, plans, orders, links, countdown, kick, owner panel) |
+| `src/messages.js` | Bot texts and inline keyboards |
+| `src/db.js` | SQLite schema (built-in `node:sqlite`, no native deps) |
+| `src/auth.js` | Telegram Mini App `initData` HMAC validation |
+| `public/index.html`, `app.js`, `app.css` | Mini App (Explore · My memberships · Manage) |
+| `public/game/` | the previous "Hit the BOSS!" demo, now at `/game` |
 
-| Env var | Meaning |
-|---------|---------|
-| `ADSGRAM_BLOCK_ID` | Rewarded block ID from partner.adsgram.ai (empty = demo ad) |
-| `DEMO_AD_SECONDS`  | Length of the demo ad (default 5) |
+**Security:** every API call is authenticated with signed Telegram `initData`
+(HMAC, max age 24h). Owner endpoints check ownership. Payment amount, currency
+and buyer are re-checked at `pre_checkout_query`; duplicate payment updates are
+ignored by charge ID. The bot token never reaches the browser (chat photos are
+proxied).
 
-The server serves these as `/config.js` (`window.APP_CONFIG`).
+### API (all need `X-Telegram-Init-Data`)
 
-## Structure
+`GET /api/me` · `GET /api/explore` · `GET /api/chats/:slug` · `GET /api/my` ·
+`POST /api/orders {planId}` · `GET /api/orders/:id` ·
+`POST /api/memberships/:id/link` · `GET /api/owner/chats` ·
+`GET|PATCH /api/owner/chats/:slug` · `POST /api/owner/chats/:slug/refresh` ·
+`POST /api/owner/chats/:slug/plans` · `PATCH|DELETE /api/owner/chats/:slug/plans/:id` ·
+`POST /api/owner/chats/:slug/members/:id/kick` ·
+`POST /api/owner/chats/:slug/members/:id/extend {days}` · `GET /api/admin/stats`
 
-- `server.js` — Express static server (+ `/api/health`, `/vendor/confetti.js`)
-- `public/rewards.js` — reward ladder rules (pure logic, unit-tested)
-- `public/ads.js` — rewarded ads adapter (Adsgram / demo)
-- `public/index.html`, `style.css`, `app.js` — all UI and animations
-- `public/assets/` — `boss.webp` (3D star), `pedestal.webp`, `card-bg.jpg`
-  (generated artwork) + Fluent Emoji 3D icons (MIT)
+## Tests
+
+`npm test` runs 23 tests. The whole flow runs against a fake Telegram API with a
+fake clock: admin → owner DM → price/days → pay → one-time link → stranger
+declined → join → countdown → reminder → auto-kick, plus renewals, refunds,
+expired links, the owner panel, initData checks and the HTTP API.
+
+## Notes
+
+- Stars go to the **bot's** balance (Telegram rule). Paying out to group owners
+  is outside the bot — the Manage tab shows each owner's earnings for that.
+- Countdowns are stored as absolute timestamps, so restarts don't lose time;
+  overdue members are removed on the next scheduler run.
 
 ## Open-source resources
 
-- Font [Nunito](https://fonts.google.com/specimen/Nunito) — OFL
-- Icons [Fluent Emoji 3D](https://github.com/microsoft/fluentui-emoji) — MIT
-- [canvas-confetti](https://github.com/catdad/canvas-confetti) — ISC
-- Telegram WebApp SDK — `telegram-web-app.js`
-
-## Backend integration (later)
-
-- State is in `localStorage` (`boss_rewards_v1`) — move `load()/save()` in
-  `public/app.js` to the server so stars can't be edited by the user.
-- Verify ad views server-side with the Adsgram reward URL before adding stars.
-- Next step: a **shop** where users spend their stars on products.
+Nunito (OFL) · Fluent Emoji 3D (MIT) · canvas-confetti (ISC) · grammY (MIT) ·
+Express (MIT) · Telegram WebApp SDK

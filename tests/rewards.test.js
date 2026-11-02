@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import '../public/rewards.js';
+import '../public/game/rewards.js';
 
 const R = globalThis.Rewards;
 const tapTo = (s, n) => R.tap(s, n - s.points).state;

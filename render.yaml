@@ -1,13 +1,29 @@
 services:
   - type: web
-    name: bey-bossa
+    name: star-pass-bot
     runtime: node
-    plan: free
+    # SQLite lives on a persistent disk. Render disks need a paid plan (starter).
+    # On the free plan the database is wiped on every deploy/restart —
+    # members would then never be removed. Use a disk in production.
+    plan: starter
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: 22.16.0
-      - key: ADSGRAM_BLOCK_ID
+      - key: BOT_TOKEN
         sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/bot.db
+      - key: ADMIN_IDS
+        sync: false
+      - key: MINIAPP_SHORT_NAME
+        sync: false
+      # PUBLIC_URL defaults to RENDER_EXTERNAL_URL automatically

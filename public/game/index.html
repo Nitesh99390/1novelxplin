@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Hit the boss, watch ads and collect Telegram Stars!">
+  <title>Hit the BOSS!</title>
+  <link rel="icon" href="/assets/star.png">
+  <link rel="preload" as="image" href="/assets/boss.webp">
+  <link rel="preload" as="image" href="/assets/pedestal.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/game/style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="/config.js"></script>
+  <script src="/vendor/confetti.js" defer></script>
+  <script src="/game/rewards.js" defer></script>
+  <script src="/game/ads.js" defer></script>
+  <script src="/game/app.js" defer></script>
+</head>
+<body>
+  <!-- Background glow + drifting stars -->
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg-stars" id="bg-stars" aria-hidden="true"></div>
+
+  <!-- ===================== GAME SCREEN ===================== -->
+  <main id="screen-game" class="screen active">
+    <header class="hud">
+      <div class="counter-card">
+        <span class="counter-label">Points<br>tapped:</span>
+        <span class="counter-value"><img src="/assets/star.png" alt="" class="star-ico"><b id="score">0</b></span>
+      </div>
+      <button class="stars-chip" id="stars-chip" type="button" aria-label="My stars">
+        <span class="chip-label">My stars</span>
+        <span class="chip-value"><img src="/assets/star.png" alt="" class="star-ico"><b id="stars">0</b></span>
+      </button>
+    </header>
+
+    <section class="arena">
+      <div class="arena-glow"></div>
+      <div class="light-beam" aria-hidden="true"></div>
+      <div class="embers" id="embers" aria-hidden="true"></div>
+
+      <div class="stage">
+        <img class="pedestal" src="/assets/pedestal.webp" alt="" draggable="false">
+        <div class="ped-glow" aria-hidden="true"></div>
+        <button class="boss" id="boss" type="button" aria-label="Hit the boss">
+          <img id="boss-img" src="/assets/boss.webp" alt="Boss — golden star" draggable="false">
+        </button>
+      </div>
+
+      <div id="floaters" class="floaters" aria-hidden="true"></div>
+      <div id="particles" class="particles" aria-hidden="true"></div>
+    </section>
+
+    <section class="bottom">
+      <div class="goal" id="goal">
+        <div class="goal-steps" id="goal-steps"></div>
+        <div class="goal-text" id="goal-text">Reach 1,000 points</div>
+      </div>
+      <div class="hp-track" role="progressbar" aria-label="Boss health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="hp-bar">
+        <div class="hp-fill" id="hp-fill"></div>
+      </div>
+      <h1 class="boss-title" id="boss-title">This is your first boss</h1>
+      <p class="boss-sub" id="boss-sub">Hit him!</p>
+      <button class="gold-btn hit-btn" id="hit-btn" type="button">
+        <span class="tap-hint" aria-hidden="true"></span>
+        <span class="btn-label">Hit the boss!</span>
+      </button>
+    </section>
+  </main>
+
+  <!-- ===================== REWARD SCREEN ===================== -->
+  <main id="screen-win" class="screen">
+    <div class="win-wrap">
+      <div class="prize-card" id="prize-card">
+        <img class="prize-bg" src="/assets/card-bg.jpg" alt="">
+        <div class="prize-shine"></div>
+        <div class="prize-center">
+          <div class="prize-amount"><img src="/assets/star.png" alt="" class="prize-star"><span id="prize-amount">1,000</span></div>
+          <div class="prize-caption">Telegram Stars</div>
+        </div>
+      </div>
+
+      <div class="badge"><img src="/assets/sparkles.png" alt=""><span id="win-badge">BOSS DEFEATED</span></div>
+      <h1 class="win-title" id="win-title">You killed the boss!</h1>
+      <p class="win-line" id="win-line">Watch <b id="win-ads">1 ad</b> and get <span class="pill"><b id="win-amount">1,000</b><img src="/assets/star.png" alt="" class="star-ico"></span></p>
+      <div class="ad-steps" id="ad-steps" aria-label="Ads watched"></div>
+      <p class="win-hint" id="win-hint">Skip the ad and the boss comes back — you start again from 0</p>
+    </div>
+    <div class="win-footer">
+      <button class="gold-btn claim-btn" id="ad-btn" type="button">
+        <svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><span id="ad-btn-label">Watch ad</span>
+      </button>
+      <button class="ghost-btn" id="skip-btn" type="button">Skip and start over</button>
+    </div>
+  </main>
+
+  <!-- ===================== DEMO AD (used until a real ad network is configured) ===================== -->
+  <div class="ad-overlay" id="ad-overlay" role="dialog" aria-modal="true" aria-label="Advertisement">
+    <div class="ad-top">
+      <span class="ad-tag">AD</span>
+      <span class="ad-timer" id="ad-timer">Reward in 5s</span>
+      <button class="ad-close" id="ad-close" type="button" aria-label="Close ad">&times;</button>
+    </div>
+    <div class="ad-body">
+      <img src="/assets/boss.webp" alt="" class="ad-art">
+      <h2>Your ad could be here</h2>
+      <p>Demo advertisement — connect Adsgram to show real rewarded ads.</p>
+    </div>
+    <div class="ad-progress"><i id="ad-progress"></i></div>
+  </div>
+
+  <div class="fly-layer" id="fly-layer" aria-hidden="true"></div>
+
+  <!-- White flash on the finishing blow -->
+  <div class="flash" id="flash" aria-hidden="true"></div>
+
+  <!-- Bottom sheet (Withdraw / Claim) -->
+  <div class="sheet-backdrop" id="sheet-backdrop">
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-grip"></div>
+      <img class="sheet-ico" id="sheet-ico" src="/assets/star.png" alt="">
+      <h2 id="sheet-title">Withdraw stars</h2>
+      <p id="sheet-text">Defeat the boss to earn at least 5,000 stars, then claim your reward via the link.</p>
+      <button class="gold-btn" id="sheet-ok" type="button">Got it</button>
+      <button class="ghost-btn" id="sheet-cancel" type="button" hidden>Cancel</button>
+    </section>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
