@@ -1,9 +1,9 @@
 {
-  "name": "bey-bossa",
+  "name": "hit-the-boss",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Бей БОССА! — Telegram Mini App frontend (clicker boss game)",
+  "description": "Hit the BOSS! — Telegram Mini App frontend (clicker boss game)",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",

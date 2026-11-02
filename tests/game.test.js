@@ -20,13 +20,14 @@ test('health endpoint', async () => {
   assert.deepEqual(await r.json(), { ok: true });
 });
 
-test('serves index with Russian UI strings', async () => {
+test('serves index with English UI strings', async () => {
   const html = await (await fetch(base)).text();
-  for (const s of ['Бей БОССА!', 'Сколько', 'накликано', 'Вывести', 'Бей босса!', 'Ты убил босса!', 'БОСС ПОВЕРЖЕН', 'Telegram Stars']) assert.ok(html.includes(s), `missing: ${s}`);
+  for (const s of ['Hit the BOSS!', 'Stars<br>clicked:', 'Withdraw', 'Hit the boss!', 'This is your first boss', 'You killed the boss!', 'BOSS DEFEATED', 'Telegram Stars', 'Claim']) assert.ok(html.includes(s), `missing: ${s}`);
+  assert.ok(!/[а-яА-Я]/.test(html), 'no Cyrillic left in the UI');
 });
 
 test('serves static assets and vendor confetti', async () => {
-  for (const p of ['/style.css', '/app.js', '/vendor/confetti.js', '/assets/star.png', '/assets/pumpkin.png', '/assets/maple.png']) {
+  for (const p of ['/style.css', '/app.js', '/vendor/confetti.js', '/assets/star.png', '/assets/boss.webp', '/assets/pedestal.webp', '/assets/card-bg.jpg']) {
     const r = await fetch(base + p);
     assert.equal(r.status, 200, p);
   }

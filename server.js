@@ -1,6 +1,6 @@
-// Минимальный статический сервер для Telegram Mini App «Бей БОССА!».
-// Бэкенд (игровая логика, Telegram-бот, выплаты) будет добавлен позже —
-// сейчас это только фронтенд, состояние хранится в localStorage на клиенте.
+// Minimal static server for the "Hit the BOSS!" Telegram Mini App.
+// Backend (game logic, Telegram bot, payouts) comes later —
+// for now this is frontend only; state lives in localStorage on the client.
 import express from 'express';
 import { resolve } from 'node:path';
 
@@ -16,7 +16,7 @@ app.use((_, res, next) => {
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
 
-// Open-source библиотека конфетти (ISC) отдаётся из node_modules
+// Open-source confetti library (ISC) served from node_modules
 app.get('/vendor/confetti.js', (_, res) =>
   res.sendFile(resolve('node_modules/canvas-confetti/dist/confetti.browser.js'))
 );
@@ -24,4 +24,4 @@ app.get('/vendor/confetti.js', (_, res) =>
 app.use(express.static('public', { extensions: ['html'], maxAge: '1h' }));
 app.get('*path', (_, res) => res.sendFile(resolve('public/index.html')));
 
-app.listen(port, '0.0.0.0', () => console.log(`Бей БОССА! listening on ${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`Hit the BOSS! listening on ${port}`));
